@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { generateRandomColors } from "@/utils/colorCustomization"
+import { generateAndApplyRandomColors } from "@/utils/colorCustomization"
 import { PhilosophicalQuote } from "@/components/PhilosophicalQuote"
 import { FloatingShapes } from "@/components/FloatingShapes"
+import { TestDbConnection } from "@/components/TestDbConnection"
 
 interface User {
   username: string
@@ -36,7 +37,7 @@ export default function Dashboard() {
   }
 
   const handleRandomizeColors = () => {
-    generateRandomColors()
+    generateAndApplyRandomColors()
   }
 
   if (!user) {
@@ -58,7 +59,7 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <Link
             href="/dashboard/submit"
             className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
@@ -74,6 +75,7 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Reflect on the echoes of past revelations</p>
           </Link>
         </div>
+        <TestDbConnection />
         <PhilosophicalQuote className="mt-12 text-center" />
       </div>
     </div>
