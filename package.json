@@ -1,0 +1,25 @@
+{
+  "name": "kerano",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@types/node": "20.x",
+    "@types/react": "18.x",
+    "@types/react-dom": "18.x",
+    "autoprefixer": "10.x",
+    "framer-motion": "^10.x",
+    "next": "^15.1.7",
+    "postcss": "8.x",
+    "react": "18.x",
+    "react-dom": "18.x",
+    "tailwindcss": "3.x",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "5.x"
+  }
+}
