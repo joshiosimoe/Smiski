@@ -1,46 +1,50 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { signOut } from "next-auth/react"
 import { generateAndApplyRandomColors } from "@/utils/colorCustomization"
 import { PhilosophicalQuote } from "@/components/PhilosophicalQuote"
 import { FloatingShapes } from "@/components/FloatingShapes"
-import { TestDbConnection } from "@/components/TestDbConnection"
-
-interface User {
-  username: string
-}
+import { CsvUploader } from "@/components/CsvUploader"
+import { PhilosophicalSpinner } from "@/components/PhilosophicalSpinner"
+import { CsvSelector } from "@/components/CsvSelector"
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null)
+  const { data: session, status } = useSession()
   const router = useRouter()
+  const [selectedCsvId, setSelectedCsvId] = useState<string | null>(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser)
-        setUser(parsedUser)
-      } catch (error) {
-        console.error("Error parsing user data:", error)
-        router.push("/login")
-      }
-    } else {
+    if (status === "unauthenticated") {
       router.push("/login")
     }
-  }, [router])
+  }, [status, router])
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/login")
+    signOut({ callbackUrl: "/" })
   }
 
   const handleRandomizeColors = () => {
     generateAndApplyRandomColors()
   }
 
-  if (!user) {
+  const handleCsvSelect = (csvId: string) => {
+    setSelectedCsvId(csvId)
+    router.push(`/dashboard/chat/${csvId}`)
+  }
+
+  const handleCsvUpload = (csvId: string) => {
+    setSelectedCsvId(csvId)
+    router.push(`/dashboard/chat/${csvId}`)
+  }
+
+  if (status === "loading") {
+    return <PhilosophicalSpinner />
+  }
+
+  if (!session) {
     return null
   }
 
@@ -49,7 +53,7 @@ export default function Dashboard() {
       <FloatingShapes />
       <div className="relative z-10 max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Welcome, {user.username}</h1>
+          <h1 className="text-3xl font-bold text-foreground">Welcome, {session.user?.name}</h1>
           <div className="space-x-4">
             <button onClick={handleRandomizeColors} className="philosophical-button bg-accent text-accent-foreground">
               Shift Paradigm
@@ -60,22 +64,15 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <Link
-            href="/dashboard/submit"
-            className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-          >
-            <h2 className="text-xl font-semibold mb-2 text-card-foreground">Distill Wisdom</h2>
-            <p className="text-muted-foreground">Transmute raw data into crystallized insight</p>
-          </Link>
-          <Link
-            href="/dashboard/history"
-            className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-          >
-            <h2 className="text-xl font-semibold mb-2 text-card-foreground">Contemplate History</h2>
-            <p className="text-muted-foreground">Reflect on the echoes of past revelations</p>
-          </Link>
+          <div className="bg-card p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-card-foreground">Your CSV Files</h2>
+            <CsvSelector onSelect={handleCsvSelect} />
+          </div>
+          <div className="bg-card p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-card-foreground">Upload New CSV</h2>
+            <CsvUploader onUpload={handleCsvUpload} />
+          </div>
         </div>
-        <TestDbConnection />
         <PhilosophicalQuote className="mt-12 text-center" />
       </div>
     </div>

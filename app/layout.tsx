@@ -3,6 +3,7 @@ import "./globals.css"
 import { Inter } from "next/font/google"
 import { Transition } from "@/components/Transition"
 import { ColorThemeProvider } from "@/components/ColorThemeProvider"
+import { Providers } from "@/components/Providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <ColorThemeProvider>
-          <Transition>{children}</Transition>
-        </ColorThemeProvider>
+        <Providers>
+          <ColorThemeProvider>
+            <Transition>{children}</Transition>
+          </ColorThemeProvider>
+        </Providers>
       </body>
     </html>
   )

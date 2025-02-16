@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { PhilosophicalQuote } from "@/components/PhilosophicalQuote"
@@ -16,14 +16,13 @@ export default function Login() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard")
-    }
-  }, [status, router])
-
   if (status === "loading") {
     return <PhilosophicalSpinner />
+  }
+
+  if (session) {
+    router.push("/dashboard")
+    return null
   }
 
   const handleGoogleSignIn = () => {
@@ -40,7 +39,7 @@ export default function Login() {
     })
     if (result?.error) {
       setError("Invalid email or password")
-    } else if (result?.ok) {
+    } else {
       router.push("/dashboard")
     }
   }
@@ -50,35 +49,33 @@ export default function Login() {
       <div className="relative bg-card p-8 rounded-lg shadow-lg w-full max-w-md">
         <div className="absolute inset-0 bg-primary/5 rounded-lg filter blur-xl"></div>
         <div className="relative z-10 space-y-6">
-          <h2 className="text-2xl font-bold mb-6 text-center text-card-foreground">Welcome to Kerano</h2>
-          <div className="space-y-4">
-            <button onClick={handleGoogleSignIn} className="philosophical-button w-full">
-              Sign in with Google
+          <h2 className="text-2xl font-bold mb-6 text-center text-card-foreground">Embark on Your Kerano Journey</h2>
+          <button onClick={handleGoogleSignIn} className="philosophical-button w-full mb-4">
+            Sign in with Google
+          </button>
+          <div className="text-center text-muted-foreground">or</div>
+          <form onSubmit={handleEmailSignIn} className="space-y-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              className="philosophical-input w-full"
+              required
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="philosophical-input w-full"
+              required
+            />
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <button type="submit" className="philosophical-button w-full">
+              Sign in
             </button>
-            <div className="text-center text-muted-foreground">or</div>
-            <form onSubmit={handleEmailSignIn} className="space-y-4">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="philosophical-input w-full"
-                required
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="philosophical-input w-full"
-                required
-              />
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              <button type="submit" className="philosophical-button w-full">
-                Sign in with Email
-              </button>
-            </form>
-          </div>
+          </form>
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link href="/register" className="text-primary hover:underline">

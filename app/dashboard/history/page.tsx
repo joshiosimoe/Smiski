@@ -1,56 +1,69 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-
-interface Submission {
-  data: string
-  timestamp: string
-}
+import Link from "next/link"
+import { PhilosophicalSpinner } from "@/components/PhilosophicalSpinner"
+import type { CsvFile } from "@/models/CsvFile"
 
 export default function History() {
-  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const { data: session, status } = useSession()
   const router = useRouter()
+  const [files, setFiles] = useState<CsvFile[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const storedSubmissions = localStorage.getItem("submissions")
-    if (storedSubmissions) {
-      setSubmissions(JSON.parse(storedSubmissions))
+    if (status === "unauthenticated") {
+      router.push("/login")
+    } else if (status === "authenticated") {
+      fetchFiles()
     }
-  }, [])
+  }, [status, router])
+
+  const fetchFiles = async () => {
+    try {
+      const response = await fetch("/api/csv-files")
+      if (!response.ok) {
+        throw new Error("Failed to fetch files")
+      }
+      const data = await response.json()
+      setFiles(data.files)
+    } catch (err) {
+      setError("Failed to load files")
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (status === "loading" || isLoading) {
+    return <PhilosophicalSpinner />
+  }
+
+  if (error) {
+    return <p className="text-destructive">{error}</p>
+  }
+
+  if (!session) {
+    return null
+  }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-foreground">Submission History</h1>
-        {submissions.length > 0 ? (
-          <div className="bg-card rounded-lg shadow-md overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="p-3 text-left text-muted-foreground">Timestamp</th>
-                  <th className="p-3 text-left text-muted-foreground">Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map((submission, index) => (
-                  <tr key={index} className="border-t border-muted">
-                    <td className="p-3 text-card-foreground">{new Date(submission.timestamp).toLocaleString()}</td>
-                    <td className="p-3 text-card-foreground">{submission.data}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <div className="bg-background p-8">
+      <h1 className="text-3xl font-bold mb-6 text-foreground">Processed CSV Files</h1>
+      <div className="grid gap-6">
+        {files.map((file) => (
+          <div key={file._id?.toString()} className="bg-card p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-2 text-card-foreground">{file.fileName}</h2>
+            <p className="text-muted-foreground mb-2">Uploaded on: {new Date(file.uploadDate).toLocaleString()}</p>
+            <p className="text-muted-foreground mb-4">{file.summary}</p>
+            <Link href={`/dashboard/chat/${file._id}`} className="philosophical-button inline-block">
+              Engage in Dialogue
+            </Link>
           </div>
-        ) : (
-          <p className="text-muted-foreground">No submissions yet.</p>
-        )}
-        <button
-          onClick={() => router.back()}
-          className="mt-6 bg-secondary text-secondary-foreground px-4 py-2 rounded hover:bg-secondary/90 transition-colors"
-        >
-          Back
-        </button>
+        ))}
       </div>
     </div>
   )
